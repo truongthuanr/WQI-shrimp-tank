@@ -8,8 +8,39 @@ My first critical concern relates to computational reproducibility.
 My first critical concern relates to computational reproducibility. The methods mention z-score normalization, a 60/20/20 split, "auto mode with 200 loops," GridSearchCV, and a "nested, time-blocked" cross-validation scheme, but the manuscript does not specify which variables were normalized, whether scaling was fit only on training data or on the full dataset, which hyperparameters were explored for each model, how many folds were used, or how the time-blocked procedure was reconciled with a previous random split. This is not a minor issue. With data collected four times per day over eleven months, the partitioning and scaling strategy directly affects the risks of information leakage and inflated model performance. Without that level of traceability, an independent reader cannot reproduce or audit the workflow. I strongly recommend that the authors reconstruct the analytical pipeline explicitly, ideally through a dedicated methodological table or appendix covering preprocessing, splitting sequence, hyperparameter tuning, and final model selection criteria.
 
 --- Response ---
+Technical details to add in manuscript (Methods - Computational pipeline):
+1. Data cleaning and preparation:
+   - Parse Date with date format.
+   - Convert numeric fields and impute missing water-level values (imputed by median).
+   - Build `unit_id` from crop-module-pond identifiers.
+2. Forecast target construction:
+   - Define horizon-specific targets by shifting alkalinity within each `unit_id`.
 
-Thank you for this important point. We have fully reconstructed the computational workflow and now provide a stepwise, reproducible pipeline. The revised manuscript explicitly reports: (i) which predictors were normalized, (ii) where and how scaling was fit to prevent leakage, (iii) the exact split sequence, (iv) the time-blocked nested cross-validation setup (including folds), (v) model-specific hyperparameter search spaces, and (vi) the final model-selection rule. We also added a dedicated workflow table/appendix to support independent auditability. The methods mention z-score normalization, a 60/20/20 split, "auto mode with 200 loops," GridSearchCV, and a "nested, time-blocked" cross-validation scheme, but the manuscript does not specify which variables were normalized, whether scaling was fit only on training data or on the full dataset, which hyperparameters were explored for each model, how many folds were used, or how the time-blocked procedure was reconciled with a previous random split. This is not a minor issue. With data collected four times per day over eleven months, the partitioning and scaling strategy directly affects the risks of information leakage and inflated model performance. Without that level of traceability, an independent reader cannot reproduce or audit the workflow. I strongly recommend that the authors reconstruct the analytical pipeline explicitly, ideally through a dedicated methodological table or appendix covering preprocessing, splitting sequence, hyperparameter tuning, and final model selection criteria.
+3. Feature processing:
+   - Categorical variables encoded via `OneHotEncoder`.
+   - Model-specific scaling:
+     - RF: numeric variables are used without scaling (tree-based model does not require feature scaling).
+     - SVR/ANN: `X` and `y` are scaled using separate `StandardScaler` objects; scalers are fit on train only, then applied to validation/test; predictions are inverse-transformed to original units.
+   - Preprocessing is embedded in model pipelines to avoid leakage.
+   
+4. Temporal partition strategy:
+   - Use chronological split into train/validation/test.
+   - Keep the final chronological block as strict holdout test.
+5. Hyperparameter tuning:
+   - Use `GridSearchCV` with `TimeSeriesSplit` for time-ordered CV.
+   - Search space includes `n_estimators`, `max_depth`, `min_samples_split`, `min_samples_leaf`, `max_features`, and `bootstrap`.
+   - Selection criterion: best CV score on negative RMSE (equivalent to minimum RMSE).
+6. Final evaluation:
+   - Retrain best estimator and evaluate on holdout test.
+   - Report RMSE, MAE, MAPE, R2, and Bias.
+7. Reproducibility outputs:
+   - Save run configuration, split sizes, best hyperparameters, CV score, and test metrics.
+   - Save per-sample test predictions for each horizon.
+
+Pending alignment checks before final manuscript update:
+1. If manuscript text states \"nested time-blocked CV\", revise wording unless outer+inner nested loops are actually implemented.
+2. If manuscript text states global z-score normalization for all models, clarify model-specific preprocessing (RF currently uses no scaling).
+3. Add explicit mapping from `shift_day` to real-time interval based on sampling frequency.
 
 My second critical point concerns the Water Quality Index.
 

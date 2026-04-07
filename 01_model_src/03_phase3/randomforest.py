@@ -3,7 +3,7 @@
 This script provides a reproducible, leakage-safe pipeline with:
 - deterministic data cleaning
 - time-aware splitting (train/validation/test)
-- hyperparameter tuning with RandomizedSearchCV + TimeSeriesSplit
+- hyperparameter tuning with GridSearchCV/RandomizedSearchCV + TimeSeriesSplit
 - final evaluation on a strict holdout test window
 - export of metrics and model configuration
 
@@ -11,6 +11,9 @@ Naming convention:
 - One run can train multiple forecast horizons using --shift-days.
 - Each horizon is written to output/shift_<N>/.
 - Aggregate overview is written to output/all_runs_summary.json.
+
+Sample command:
+python randomforest.py --data-path ../../../dataset/data_4perday_cleaned.csv --output-dir ./output --shift-days 1,2,3 --search-method grid --cv-folds 5 --zscore-limit 3
 """
 
 from __future__ import annotations
@@ -26,7 +29,7 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, TimeSeriesSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -69,8 +72,10 @@ class Config:
     test_ratio: float = 0.2
     val_ratio_within_trainval: float = 0.25
     shift_days: str = "1,2,3"
+    search_method: str = "grid"
     cv_folds: int = 5
     random_search_iter: int = 60
+    zscore_limit: float = 3.0
 
 
 def build_unit_id(df: pd.DataFrame) -> pd.Series:
@@ -148,6 +153,22 @@ def load_and_clean_data(cfg: Config) -> pd.DataFrame:
     df = df[keep].copy()
     df = df.sort_values(["unit_id", COL_DATE]).dropna().reset_index(drop=True)
     return df
+
+
+def apply_zscore_filter(df: pd.DataFrame, numeric_cols: List[str], zscore_limit: float) -> pd.DataFrame:
+    """Filter out rows with |z-score| >= zscore_limit on any numeric feature.
+
+    Set zscore_limit <= 0 to disable this filter.
+    """
+    if zscore_limit <= 0:
+        return df.copy()
+
+    df_num = df[numeric_cols]
+    std = df_num.std(ddof=0).replace(0, np.nan)
+    z = (df_num - df_num.mean()) / std
+    mask = z.abs().lt(zscore_limit).all(axis=1)
+    mask = mask.fillna(False)
+    return df.loc[mask].reset_index(drop=True)
 
 
 def prepare_shift_target(df: pd.DataFrame, shift_day: int) -> Tuple[pd.DataFrame, str]:
@@ -252,17 +273,29 @@ def run_single_shift(
     pipe = make_pipeline(categorical_cols, numeric_cols, cfg.random_state)
     tscv = TimeSeriesSplit(n_splits=cfg.cv_folds)
 
-    search = RandomizedSearchCV(
-        estimator=pipe,
-        param_distributions=get_search_space(),
-        n_iter=cfg.random_search_iter,
-        cv=tscv,
-        scoring="neg_root_mean_squared_error",
-        random_state=cfg.random_state,
-        n_jobs=-1,
-        verbose=1,
-        refit=True,
-    )
+    search_space = get_search_space()
+    if cfg.search_method == "grid":
+        search = GridSearchCV(
+            estimator=pipe,
+            param_grid=search_space,
+            cv=tscv,
+            scoring="neg_root_mean_squared_error",
+            n_jobs=-1,
+            verbose=1,
+            refit=True,
+        )
+    else:
+        search = RandomizedSearchCV(
+            estimator=pipe,
+            param_distributions=search_space,
+            n_iter=cfg.random_search_iter,
+            cv=tscv,
+            scoring="neg_root_mean_squared_error",
+            random_state=cfg.random_state,
+            n_jobs=-1,
+            verbose=1,
+            refit=True,
+        )
     search.fit(X_trainval, y_trainval)
     y_pred_test = search.best_estimator_.predict(X_test)
 
@@ -273,6 +306,7 @@ def run_single_shift(
         "shift_day": shift_day,
         "target_column": target_col,
         "config": asdict(cfg),
+        "search_method": cfg.search_method,
         "n_rows_after_shift": int(len(df_shift)),
         "split_sizes": {
             "train": int(len(train_df)),
@@ -303,18 +337,33 @@ def main() -> None:
         default=Config.shift_days,
         help="Comma-separated forecast shifts, for example: 1,2,3",
     )
+    parser.add_argument(
+        "--search-method",
+        type=str,
+        default=Config.search_method,
+        choices=["grid", "random"],
+        help="Hyperparameter tuning strategy.",
+    )
     parser.add_argument("--random-state", type=int, default=Config.random_state)
     parser.add_argument("--cv-folds", type=int, default=Config.cv_folds)
     parser.add_argument("--random-search-iter", type=int, default=Config.random_search_iter)
+    parser.add_argument(
+        "--zscore-limit",
+        type=float,
+        default=Config.zscore_limit,
+        help="Absolute z-score threshold for numeric outlier filtering; <=0 disables filter.",
+    )
     args = parser.parse_args()
 
     cfg = Config(
         data_path=args.data_path,
         output_dir=args.output_dir,
         shift_days=args.shift_days,
+        search_method=args.search_method,
         random_state=args.random_state,
         cv_folds=args.cv_folds,
         random_search_iter=args.random_search_iter,
+        zscore_limit=args.zscore_limit,
     )
 
     out_dir = Path(cfg.output_dir)
@@ -340,6 +389,9 @@ def main() -> None:
         COL_NITRITE,
         COL_SILICA,
     ]
+    n_rows_before_zscore = len(df_base)
+    df_base = apply_zscore_filter(df_base, numeric_cols=numeric_cols, zscore_limit=cfg.zscore_limit)
+    n_rows_after_zscore = len(df_base)
 
     all_results = []
     for shift_day in shift_days:
@@ -356,7 +408,15 @@ def main() -> None:
         )
 
     (out_dir / "all_runs_summary.json").write_text(
-        json.dumps({"runs": all_results}, indent=2),
+        json.dumps(
+            {
+                "global_config": asdict(cfg),
+                "n_rows_before_zscore": int(n_rows_before_zscore),
+                "n_rows_after_zscore": int(n_rows_after_zscore),
+                "runs": all_results,
+            },
+            indent=2,
+        ),
         encoding="utf-8",
     )
 

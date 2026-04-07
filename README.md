@@ -6,7 +6,7 @@
 ## What this version adds
 - Time-aware split: train -> validation -> test (chronological)
 - Leakage-safe preprocessing via `Pipeline` + `ColumnTransformer`
-- Hyperparameter tuning with `RandomizedSearchCV` and `TimeSeriesSplit`
+- Hyperparameter tuning with `GridSearchCV` (default) or `RandomizedSearchCV` + `TimeSeriesSplit`
 - Final holdout test metrics: RMSE, MAE, MAPE, R2, Bias
 - Multi-horizon loop via `--shift-days` (default: `1,2,3`)
 - Exported artifacts for traceability:
@@ -16,9 +16,11 @@
 
 ## Run
 ```bash
-python randomforest.py --data-path ../../../dataset/data_4perday_cleaned.csv --output-dir ./output --shift-days 1,2,3
+python randomforest.py --data-path ../../../dataset/data_4perday_cleaned.csv --output-dir ./output --shift-days 1,2,3 --search-method grid --zscore-limit 3
 ```
 
 ## Notes
 - `shift-days` controls forecast horizon in row-steps.
 - Example: `--shift-days 1,2,3` trains/evaluates three models in one run.
+- `search-method` can be `grid` or `random` (default is `grid`).
+- `zscore-limit` controls numeric outlier filtering (`|z| < limit`); set `<=0` to disable.

@@ -1,0 +1,38 @@
+{
+  "shift_day": 1,
+  "target_column": "target_alkalinity_shift_1",
+  "config": {
+    "data_path": "../../../dataset/data_4perday_cleaned.csv",
+    "output_dir": "./output_smoketest_random_after_grid",
+    "random_state": 42,
+    "test_ratio": 0.2,
+    "val_ratio_within_trainval": 0.25,
+    "shift_days": "1",
+    "search_method": "random",
+    "cv_folds": 3,
+    "random_search_iter": 2
+  },
+  "search_method": "random",
+  "n_rows_after_shift": 3443,
+  "split_sizes": {
+    "train": 2067,
+    "validation": 688,
+    "test": 688
+  },
+  "best_params": {
+    "model__n_estimators": 500,
+    "model__min_samples_split": 5,
+    "model__min_samples_leaf": 5,
+    "model__max_features": null,
+    "model__max_depth": 10,
+    "model__bootstrap": true
+  },
+  "cv_best_rmse": 15.292801738008743,
+  "test_metrics": {
+    "rmse": 20.63172131129766,
+    "mae": 15.017739432143367,
+    "mape": 13.848652122762614,
+    "r2": 0.3903867945099142,
+    "bias": 10.624405996084265
+  }
+}

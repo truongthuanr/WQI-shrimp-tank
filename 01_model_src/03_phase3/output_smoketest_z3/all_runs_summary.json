@@ -1,0 +1,57 @@
+{
+  "global_config": {
+    "data_path": "../../../dataset/data_4perday_cleaned.csv",
+    "output_dir": "./output_smoketest_z3",
+    "random_state": 42,
+    "test_ratio": 0.2,
+    "val_ratio_within_trainval": 0.25,
+    "shift_days": "1",
+    "search_method": "random",
+    "cv_folds": 3,
+    "random_search_iter": 2,
+    "zscore_limit": 3.0
+  },
+  "n_rows_before_zscore": 3461,
+  "n_rows_after_zscore": 3163,
+  "runs": [
+    {
+      "shift_day": 1,
+      "target_column": "target_alkalinity_shift_1",
+      "config": {
+        "data_path": "../../../dataset/data_4perday_cleaned.csv",
+        "output_dir": "./output_smoketest_z3",
+        "random_state": 42,
+        "test_ratio": 0.2,
+        "val_ratio_within_trainval": 0.25,
+        "shift_days": "1",
+        "search_method": "random",
+        "cv_folds": 3,
+        "random_search_iter": 2,
+        "zscore_limit": 3.0
+      },
+      "search_method": "random",
+      "n_rows_after_shift": 3145,
+      "split_sizes": {
+        "train": 1887,
+        "validation": 629,
+        "test": 629
+      },
+      "best_params": {
+        "model__n_estimators": 500,
+        "model__min_samples_split": 5,
+        "model__min_samples_leaf": 5,
+        "model__max_features": null,
+        "model__max_depth": 10,
+        "model__bootstrap": true
+      },
+      "cv_best_rmse": 13.38764809734664,
+      "test_metrics": {
+        "rmse": 15.134792650935212,
+        "mae": 11.030938190374581,
+        "mape": 8.392947263295381,
+        "r2": 0.6115478631206646,
+        "bias": 4.244769226269068
+      }
+    }
+  ]
+}
