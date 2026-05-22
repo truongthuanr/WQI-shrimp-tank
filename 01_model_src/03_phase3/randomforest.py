@@ -3,7 +3,7 @@
 This script provides a reproducible, leakage-safe pipeline with:
 - deterministic data cleaning
 - time-aware splitting (train/validation/test)
-- hyperparameter tuning with GridSearchCV/RandomizedSearchCV + TimeSeriesSplit
+- hyperparameter tuning with GridSearchCV/RandomizedSearchCV + ShuffleSplit
 - final evaluation on a strict holdout test window
 - export of metrics and model configuration
 
@@ -29,34 +29,34 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, TimeSeriesSplit
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, ShuffleSplit
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 
-# Dataset column names (kept as unicode escapes to keep source ASCII-only).
+# Dataset column names.
 COL_DATE = "Date"
-COL_CROP = "V\u1ee5 nu\xf4i"
+COL_CROP = "Vụ nuôi"
 COL_MODULE = "module_name"
 COL_POND = "ao"
-COL_STOCKING_DAY = "Ng\xe0y th\u1ea3"
+COL_STOCKING_DAY = "Ngày thả"
 COL_TIME = "Time"
-COL_TEMP = "Nhi\u1ec7t \u0111\u1ed9"
+COL_TEMP = "Nhiệt độ"
 COL_PH = "pH"
-COL_SALINITY = "\u0110\u1ed9 m\u1eb7n"
+COL_SALINITY = "Độ mặn"
 COL_TDS = "TDS"
-COL_TURBIDITY = "\u0110\u1ed9 \u0111\u1ee5c"
+COL_TURBIDITY = "Độ đục"
 COL_DO = "DO"
-COL_COLOR = "\u0110\u1ed9 m\xe0u"
-COL_TRANSPARENCY = "\u0110\u1ed9 trong"
-COL_ALKALINITY = "\u0110\u1ed9 ki\u1ec1m"
-COL_HARDNESS = "\u0110\u1ed9 c\u1ee9ng"
-COL_POND_TYPE = "Lo\u1ea1i ao"
-COL_FARM_TECH = "C\xf4ng ngh\u1ec7 nu\xf4i"
+COL_COLOR = "Độ màu"
+COL_TRANSPARENCY = "Độ trong"
+COL_ALKALINITY = "Độ kiềm"
+COL_HARDNESS = "Độ cứng"
+COL_POND_TYPE = "Loại ao"
+COL_FARM_TECH = "Công nghệ nuôi"
 COL_AREA = "area"
-COL_SEED = "Gi\u1ed1ng t\xf4m"
-COL_SHRIMP_AGE = "Tu\u1ed5i t\xf4m"
-COL_WATER_LEVEL = "M\u1ef1c n\u01b0\u1edbc"
+COL_SEED = "Giống tôm"
+COL_SHRIMP_AGE = "Tuổi tôm"
+COL_WATER_LEVEL = "Mực nước"
 COL_AMMONIA = "Amoni"
 COL_NITRATE = "Nitrat"
 COL_NITRITE = "Nitrit"
@@ -74,6 +74,7 @@ class Config:
     shift_days: str = "1,2,3"
     search_method: str = "grid"
     cv_folds: int = 5
+    cv_test_ratio: float = 0.3
     random_search_iter: int = 60
     zscore_limit: float = 3.0
 
@@ -271,14 +272,18 @@ def run_single_shift(
     y_test = test_df[target_col].to_numpy()
 
     pipe = make_pipeline(categorical_cols, numeric_cols, cfg.random_state)
-    tscv = TimeSeriesSplit(n_splits=cfg.cv_folds)
+    cv_splitter = ShuffleSplit(
+        n_splits=cfg.cv_folds,
+        test_size=cfg.cv_test_ratio,
+        random_state=cfg.random_state,
+    )
 
     search_space = get_search_space()
     if cfg.search_method == "grid":
         search = GridSearchCV(
             estimator=pipe,
             param_grid=search_space,
-            cv=tscv,
+            cv=cv_splitter,
             scoring="neg_root_mean_squared_error",
             n_jobs=-1,
             verbose=1,
@@ -289,7 +294,7 @@ def run_single_shift(
             estimator=pipe,
             param_distributions=search_space,
             n_iter=cfg.random_search_iter,
-            cv=tscv,
+            cv=cv_splitter,
             scoring="neg_root_mean_squared_error",
             random_state=cfg.random_state,
             n_jobs=-1,
@@ -346,6 +351,12 @@ def main() -> None:
     )
     parser.add_argument("--random-state", type=int, default=Config.random_state)
     parser.add_argument("--cv-folds", type=int, default=Config.cv_folds)
+    parser.add_argument(
+        "--cv-test-ratio",
+        type=float,
+        default=Config.cv_test_ratio,
+        help="Test ratio for ShuffleSplit cross-validation.",
+    )
     parser.add_argument("--random-search-iter", type=int, default=Config.random_search_iter)
     parser.add_argument(
         "--zscore-limit",
@@ -362,6 +373,7 @@ def main() -> None:
         search_method=args.search_method,
         random_state=args.random_state,
         cv_folds=args.cv_folds,
+        cv_test_ratio=args.cv_test_ratio,
         random_search_iter=args.random_search_iter,
         zscore_limit=args.zscore_limit,
     )

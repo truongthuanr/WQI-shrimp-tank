@@ -1,0 +1,40 @@
+{
+  "shift_day": 1,
+  "target_column": "target_alkalinity_shift_1",
+  "config": {
+    "data_path": "c:\\01_data\\50_Personal\\16_WQIModel\\dataset\\data_4perday_cleaned.csv",
+    "output_dir": "c:\\01_data\\50_Personal\\16_WQIModel\\WQI-Model-Ver2\\01_model_src\\03_phase3\\output_test_run",
+    "random_state": 42,
+    "test_ratio": 0.2,
+    "val_ratio_within_trainval": 0.25,
+    "shift_days": "1",
+    "search_method": "random",
+    "cv_folds": 3,
+    "cv_test_ratio": 0.3,
+    "random_search_iter": 5,
+    "zscore_limit": 3.0
+  },
+  "search_method": "random",
+  "n_rows_after_shift": 3145,
+  "split_sizes": {
+    "train": 1887,
+    "validation": 629,
+    "test": 629
+  },
+  "best_params": {
+    "model__n_estimators": 500,
+    "model__min_samples_split": 5,
+    "model__min_samples_leaf": 2,
+    "model__max_features": "log2",
+    "model__max_depth": 30,
+    "model__bootstrap": true
+  },
+  "cv_best_rmse": 12.610370505787865,
+  "test_metrics": {
+    "rmse": 23.43377594463741,
+    "mae": 18.295816226322863,
+    "mape": 14.62258103564891,
+    "r2": 0.0687439430695641,
+    "bias": 13.493857456790343
+  }
+}
