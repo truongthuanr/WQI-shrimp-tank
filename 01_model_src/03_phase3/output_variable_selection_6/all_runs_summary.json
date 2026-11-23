@@ -1,0 +1,176 @@
+[
+  {
+    "model": "RF",
+    "features": [
+      "Nhiệt độ",
+      "Độ cứng",
+      "pH",
+      "Công nghệ nuôi",
+      "Loại ao",
+      "Tuổi tôm"
+    ],
+    "target": "Độ kiềm",
+    "shift": 0,
+    "split": "random 60/20/20",
+    "seed": 42,
+    "zscore_limit": 3.0,
+    "rows": {
+      "raw": 3461,
+      "after_dropna": 3461,
+      "after_zscore": 3455,
+      "excluded_outliers": 6,
+      "train": 2073,
+      "validation": 691,
+      "trainval": 2764,
+      "test": 691
+    },
+    "fit": {
+      "params": {
+        "model__n_estimators": 500,
+        "model__min_samples_split": 5,
+        "model__min_samples_leaf": 2,
+        "model__max_features": "log2",
+        "model__max_depth": 30,
+        "model__bootstrap": true
+      }
+    },
+    "test_metrics": {
+      "rmse": 16.22180101518649,
+      "mae": 11.271020476831147,
+      "mape": 7.372563487852053,
+      "r2": 0.6899088358460512,
+      "bias": -0.4097174663899787
+    }
+  },
+  {
+    "model": "GBT",
+    "features": [
+      "Nhiệt độ",
+      "Độ cứng",
+      "pH",
+      "Công nghệ nuôi",
+      "Loại ao",
+      "Tuổi tôm"
+    ],
+    "target": "Độ kiềm",
+    "shift": 0,
+    "split": "random 60/20/20",
+    "seed": 42,
+    "zscore_limit": 3.0,
+    "rows": {
+      "raw": 3461,
+      "after_dropna": 3461,
+      "after_zscore": 3455,
+      "excluded_outliers": 6,
+      "train": 2073,
+      "validation": 691,
+      "trainval": 2764,
+      "test": 691
+    },
+    "fit": {
+      "params": {
+        "model__learning_rate": 0.1,
+        "model__max_depth": 3,
+        "model__n_estimators": 400
+      },
+      "selection": "lowest validation MAE",
+      "validation_mae": 12.259689434278812
+    },
+    "test_metrics": {
+      "rmse": 18.240318881425754,
+      "mae": 13.32677987367815,
+      "mape": 8.629339083380163,
+      "r2": 0.6079367778493797,
+      "bias": -0.9852020162335977
+    }
+  },
+  {
+    "model": "ANN",
+    "features": [
+      "Nhiệt độ",
+      "Độ cứng",
+      "pH",
+      "Công nghệ nuôi",
+      "Loại ao",
+      "Tuổi tôm"
+    ],
+    "target": "Độ kiềm",
+    "shift": 0,
+    "split": "random 60/20/20",
+    "seed": 42,
+    "zscore_limit": 3.0,
+    "rows": {
+      "raw": 3461,
+      "after_dropna": 3461,
+      "after_zscore": 3455,
+      "excluded_outliers": 6,
+      "train": 2073,
+      "validation": 691,
+      "trainval": 2764,
+      "test": 691
+    },
+    "fit": {
+      "architecture": [
+        72,
+        60,
+        32,
+        8
+      ],
+      "dropout": 0.1,
+      "optimizer": "nadam",
+      "loss": "mae",
+      "epochs": 200,
+      "batch_size": 32,
+      "last_validation_loss_scaled": 0.4321472644805908
+    },
+    "test_metrics": {
+      "rmse": 17.994282110101842,
+      "mae": 12.514830615517027,
+      "mape": 8.213365100121365,
+      "r2": 0.6184422301303572,
+      "bias": -1.4296464713023471
+    }
+  },
+  {
+    "model": "SVR",
+    "features": [
+      "Nhiệt độ",
+      "Độ cứng",
+      "pH",
+      "Công nghệ nuôi",
+      "Loại ao",
+      "Tuổi tôm"
+    ],
+    "target": "Độ kiềm",
+    "shift": 0,
+    "split": "random 60/20/20",
+    "seed": 42,
+    "zscore_limit": 3.0,
+    "rows": {
+      "raw": 3461,
+      "after_dropna": 3461,
+      "after_zscore": 3455,
+      "excluded_outliers": 6,
+      "train": 2073,
+      "validation": 691,
+      "trainval": 2764,
+      "test": 691
+    },
+    "fit": {
+      "params": {
+        "model__C": 300,
+        "model__epsilon": 5,
+        "model__gamma": "scale"
+      },
+      "selection": "lowest validation MAE",
+      "validation_mae": 12.464946404508344
+    },
+    "test_metrics": {
+      "rmse": 18.673219521488416,
+      "mae": 13.228731046564993,
+      "mape": 8.779658808572863,
+      "r2": 0.5891061345450677,
+      "bias": -0.4947384196774064
+    }
+  }
+]

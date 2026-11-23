@@ -1,0 +1,42 @@
+{
+  "model": "SVR",
+  "features": [
+    "Nhiệt độ",
+    "Độ cứng",
+    "pH",
+    "Công nghệ nuôi",
+    "Loại ao",
+    "Tuổi tôm"
+  ],
+  "target": "Độ kiềm",
+  "shift": 0,
+  "split": "random 60/20/20",
+  "seed": 42,
+  "zscore_limit": 3.0,
+  "rows": {
+    "raw": 3461,
+    "after_dropna": 3461,
+    "after_zscore": 3455,
+    "excluded_outliers": 6,
+    "train": 2073,
+    "validation": 691,
+    "trainval": 2764,
+    "test": 691
+  },
+  "fit": {
+    "params": {
+      "model__C": 300,
+      "model__epsilon": 5,
+      "model__gamma": "scale"
+    },
+    "selection": "lowest validation MAE",
+    "validation_mae": 12.464946404508344
+  },
+  "test_metrics": {
+    "rmse": 18.673219521488416,
+    "mae": 13.228731046564993,
+    "mape": 8.779658808572863,
+    "r2": 0.5891061345450677,
+    "bias": -0.4947384196774064
+  }
+}
