@@ -1,0 +1,44 @@
+{
+  "case": "SVR-9",
+  "features": [
+    "Nhiệt độ",
+    "Độ màu",
+    "area",
+    "Độ mặn",
+    "Loại ao",
+    "Độ cứng",
+    "TDS",
+    "pH",
+    "Tuổi tôm"
+  ],
+  "target": "Độ kiềm",
+  "shift": 0,
+  "split": "random 60/20/20",
+  "seed": 42,
+  "rows": {
+    "raw": 3461,
+    "after_dropna": 3057,
+    "after_zscore": 2987,
+    "excluded_outliers": 70,
+    "train": 1791,
+    "validation": 598,
+    "trainval": 2389,
+    "test": 598
+  },
+  "fit": {
+    "params": {
+      "model__C": 300,
+      "model__epsilon": 5,
+      "model__gamma": "scale"
+    },
+    "selection": "lowest validation MAE",
+    "validation_mae": 11.735773912805863
+  },
+  "test_metrics": {
+    "rmse": 14.030181188906088,
+    "mae": 10.097224991395182,
+    "mape": 6.889408546390219,
+    "r2": 0.7167048869257576,
+    "bias": 1.1361768242665766
+  }
+}

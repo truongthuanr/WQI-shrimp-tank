@@ -1,0 +1,48 @@
+{
+  "case": "ANN-8",
+  "features": [
+    "Giống tôm",
+    "area",
+    "TDS",
+    "Độ cứng",
+    "pH",
+    "Loại ao",
+    "Công nghệ nuôi",
+    "Tuổi tôm"
+  ],
+  "target": "Độ kiềm",
+  "shift": 0,
+  "split": "random 60/20/20",
+  "seed": 42,
+  "rows": {
+    "raw": 3461,
+    "after_dropna": 3057,
+    "after_zscore": 2987,
+    "excluded_outliers": 70,
+    "train": 1791,
+    "validation": 598,
+    "trainval": 2389,
+    "test": 598
+  },
+  "fit": {
+    "architecture": [
+      72,
+      60,
+      32,
+      8
+    ],
+    "dropout": 0.1,
+    "optimizer": "nadam",
+    "loss": "mae",
+    "epochs": 200,
+    "batch_size": 32,
+    "last_validation_loss_scaled": 0.4260353744029999
+  },
+  "test_metrics": {
+    "rmse": 13.826151580609325,
+    "mae": 10.01574469729012,
+    "mape": 6.664716258291155,
+    "r2": 0.7248844416291764,
+    "bias": -0.252463656524352
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "case": "gbt_9_measured",
+  "horizon": "next_day",
+  "source_time": "last record before 09:00",
+  "target_time": "morning record exactly one calendar day later",
+  "features": [
+    "Độ trong",
+    "Độ cứng",
+    "Độ mặn",
+    "Nhiệt độ",
+    "TDS",
+    "Loại ao",
+    "Công nghệ nuôi",
+    "pH",
+    "Tuổi tôm",
+    "alkalinity_input"
+  ],
+  "alkalinity_input": "measured",
+  "simulated_alkalinity_method": "5-fold out-of-fold RF on training rows; RF trained on all trainval predicts test rows",
+  "stage1_features": [
+    "Season",
+    "Loại ao",
+    "Công nghệ nuôi",
+    "Giống tôm",
+    "Ngày thả",
+    "area",
+    "Tuổi tôm",
+    "Nhiệt độ",
+    "pH",
+    "Độ mặn",
+    "Mực nước",
+    "Độ trong"
+  ],
+  "stage1_metrics": {
+    "trainval_oof_mae": 12.964973282340546,
+    "test_mae": 12.00815152272507
+  },
+  "seed": 42,
+  "split": "random trainval/test 80/20; ANN uses 60/20/20",
+  "rows": {
+    "paired": 1061,
+    "after_dropna": 965,
+    "after_zscore": 929,
+    "excluded_outliers": 36,
+    "trainval": 743,
+    "test": 186
+  },
+  "test_metrics": {
+    "rmse": 18.011845958563015,
+    "mae": 12.565151477121235,
+    "mape": 8.216779745612353,
+    "r2": 0.6032017572002756,
+    "bias": 0.003423732930134972
+  }
+}

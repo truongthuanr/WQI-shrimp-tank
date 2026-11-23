@@ -1,0 +1,43 @@
+{
+  "case": "GBT-8",
+  "features": [
+    "Độ cứng",
+    "Độ mặn",
+    "Nhiệt độ",
+    "TDS",
+    "Loại ao",
+    "Công nghệ nuôi",
+    "pH",
+    "Tuổi tôm"
+  ],
+  "target": "Độ kiềm",
+  "shift": 0,
+  "split": "random 60/20/20",
+  "seed": 42,
+  "rows": {
+    "raw": 3461,
+    "after_dropna": 3057,
+    "after_zscore": 2987,
+    "excluded_outliers": 70,
+    "train": 1791,
+    "validation": 598,
+    "trainval": 2389,
+    "test": 598
+  },
+  "fit": {
+    "params": {
+      "model__learning_rate": 0.1,
+      "model__max_depth": 3,
+      "model__n_estimators": 400
+    },
+    "selection": "lowest validation MAE",
+    "validation_mae": 12.799961858868063
+  },
+  "test_metrics": {
+    "rmse": 14.713758109071962,
+    "mae": 11.057689084269235,
+    "mape": 7.421161763790791,
+    "r2": 0.6884270489536309,
+    "bias": 0.9291964691114456
+  }
+}

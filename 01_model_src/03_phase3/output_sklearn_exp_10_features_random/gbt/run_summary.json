@@ -1,0 +1,44 @@
+{
+  "model": "GBT",
+  "data_path": "../../../dataset/data_4perday_cleaned.csv",
+  "target_column": "Độ kiềm",
+  "shift_days": 0,
+  "features": [
+    "Công nghệ nuôi",
+    "Loại ao",
+    "Season",
+    "Tuổi tôm",
+    "Nhiệt độ",
+    "pH",
+    "Độ mặn",
+    "Mực nước",
+    "area",
+    "Độ trong"
+  ],
+  "split_method": "random",
+  "random_state": 42,
+  "zscore_limit": 3.0,
+  "rows": {
+    "after_zscore": 3003,
+    "train": 1801,
+    "validation": 601,
+    "trainval": 2402,
+    "test": 601
+  },
+  "test_rows_match_rf": true,
+  "parameter_selection": "lowest validation MAE",
+  "n_parameter_candidates": 8,
+  "best_params": {
+    "model__learning_rate": 0.1,
+    "model__max_depth": 3,
+    "model__n_estimators": 400
+  },
+  "best_validation_mae": 11.728058225480718,
+  "test_metrics": {
+    "rmse": 14.803280880149396,
+    "mae": 10.763262815564454,
+    "mape": 7.099676002655304,
+    "r2": 0.6780694079982639,
+    "bias": -0.3604460434587607
+  }
+}
