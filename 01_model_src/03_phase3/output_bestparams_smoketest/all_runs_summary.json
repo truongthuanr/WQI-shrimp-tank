@@ -1,0 +1,64 @@
+{
+  "global_config": {
+    "data_path": "dataset\\data_4perday_cleaned.csv",
+    "output_dir": "WQI-Model-Ver2\\01_model_src\\03_phase3\\output_bestparams_smoketest",
+    "random_state": 42,
+    "test_ratio": 0.2,
+    "val_ratio_within_trainval": 0.25,
+    "shift_days": "1",
+    "search_method": "grid",
+    "cv_folds": 5,
+    "cv_test_ratio": 0.3,
+    "random_search_iter": 60,
+    "zscore_limit": 3.0,
+    "use_best_params": true
+  },
+  "n_records_excluded_by_operational_cleaning": 0,
+  "n_rows_before_zscore": 3461,
+  "n_records_excluded_by_zscore": 298,
+  "n_rows_after_zscore": 3163,
+  "runs": [
+    {
+      "shift_day": 1,
+      "target_column": "target_alkalinity_shift_1",
+      "config": {
+        "data_path": "dataset\\data_4perday_cleaned.csv",
+        "output_dir": "WQI-Model-Ver2\\01_model_src\\03_phase3\\output_bestparams_smoketest",
+        "random_state": 42,
+        "test_ratio": 0.2,
+        "val_ratio_within_trainval": 0.25,
+        "shift_days": "1",
+        "search_method": "grid",
+        "cv_folds": 5,
+        "cv_test_ratio": 0.3,
+        "random_search_iter": 60,
+        "zscore_limit": 3.0,
+        "use_best_params": true
+      },
+      "search_method": "best_params",
+      "n_rows_after_shift": 3145,
+      "n_records_excluded_by_target_shift": 18,
+      "split_sizes": {
+        "train": 1887,
+        "validation": 629,
+        "test": 629
+      },
+      "best_params": {
+        "model__n_estimators": 500,
+        "model__min_samples_split": 5,
+        "model__min_samples_leaf": 2,
+        "model__max_features": "log2",
+        "model__max_depth": 30,
+        "model__bootstrap": true
+      },
+      "cv_best_rmse": null,
+      "test_metrics": {
+        "rmse": 23.43377594463741,
+        "mae": 18.295816226322863,
+        "mape": 14.62258103564891,
+        "r2": 0.0687439430695641,
+        "bias": 13.493857456790343
+      }
+    }
+  ]
+}

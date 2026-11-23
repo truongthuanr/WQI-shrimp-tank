@@ -14,6 +14,8 @@ Naming convention:
 
 Sample command:
 python randomforest.py --data-path ../../../dataset/data_4perday_cleaned.csv --output-dir ./output --shift-days 1,2,3 --search-method grid --cv-folds 5 --zscore-limit 3
+python randomforest.py --data-path ../../../WQi-Model/01_model_src/04_applypredict/kiemtra_1_enriched_clean_copy.csv --output-dir ./output --shift-days 1 --use-best-params --zscore-limit 3
+python randomforest.py --data-path ../../../dataset/data_4perday_cleaned.csv --output-dir ./output --shift-days 0 --use-best-params --zscore-limit 3
 """
 
 from __future__ import annotations
@@ -77,6 +79,17 @@ class Config:
     cv_test_ratio: float = 0.3
     random_search_iter: int = 60
     zscore_limit: float = 3.0
+    use_best_params: bool = False
+
+
+BEST_PARAMS = {
+    "model__n_estimators": 500,
+    "model__min_samples_split": 5,
+    "model__min_samples_leaf": 2,
+    "model__max_features": "log2",
+    "model__max_depth": 30,
+    "model__bootstrap": True,
+}
 
 
 def build_unit_id(df: pd.DataFrame) -> pd.Series:
@@ -89,7 +102,23 @@ def build_unit_id(df: pd.DataFrame) -> pd.Series:
     )
 
 
-def load_and_clean_data(cfg: Config) -> pd.DataFrame:
+def summarize_missing_by_column(df: pd.DataFrame, cols: List[str], stage: str) -> pd.DataFrame:
+    n_rows = len(df)
+    rows = []
+    for col in cols:
+        n_missing = int(df[col].isna().sum())
+        rows.append(
+            {
+                "stage": stage,
+                "column": col,
+                "n_missing": n_missing,
+                "pct_missing": float(n_missing / n_rows * 100) if n_rows else 0.0,
+            }
+        )
+    return pd.DataFrame(rows).sort_values("n_missing", ascending=False)
+
+
+def load_and_clean_data(cfg: Config) -> Tuple[pd.DataFrame, Dict[str, int], pd.DataFrame]:
     df = pd.read_csv(cfg.data_path)
 
     required_cols = [
@@ -152,32 +181,42 @@ def load_and_clean_data(cfg: Config) -> pd.DataFrame:
     ]
 
     df = df[keep].copy()
+    missing_summary = summarize_missing_by_column(df, keep, stage="operational_cleaning")
+    n_before = len(df)
     df = df.sort_values(["unit_id", COL_DATE]).dropna().reset_index(drop=True)
-    return df
+    exclusion_summary = {
+        "operational_cleaning_missing_value": int(n_before - len(df)),
+    }
+    return df, exclusion_summary, missing_summary
 
 
-def apply_zscore_filter(df: pd.DataFrame, numeric_cols: List[str], zscore_limit: float) -> pd.DataFrame:
+def apply_zscore_filter(
+    df: pd.DataFrame, numeric_cols: List[str], zscore_limit: float
+) -> Tuple[pd.DataFrame, int]:
     """Filter out rows with |z-score| >= zscore_limit on any numeric feature.
 
     Set zscore_limit <= 0 to disable this filter.
     """
     if zscore_limit <= 0:
-        return df.copy()
+        return df.copy(), 0
 
+    n_before = len(df)
     df_num = df[numeric_cols]
     std = df_num.std(ddof=0).replace(0, np.nan)
     z = (df_num - df_num.mean()) / std
     mask = z.abs().lt(zscore_limit).all(axis=1)
     mask = mask.fillna(False)
-    return df.loc[mask].reset_index(drop=True)
+    df_filtered = df.loc[mask].reset_index(drop=True)
+    return df_filtered, int(n_before - len(df_filtered))
 
 
-def prepare_shift_target(df: pd.DataFrame, shift_day: int) -> Tuple[pd.DataFrame, str]:
+def prepare_shift_target(df: pd.DataFrame, shift_day: int) -> Tuple[pd.DataFrame, str, int]:
     target_col = f"target_alkalinity_shift_{shift_day}"
     df_shift = df.copy()
     df_shift[target_col] = df_shift.groupby("unit_id")[COL_ALKALINITY].shift(-shift_day)
+    n_missing_target = int(df_shift[target_col].isna().sum())
     df_shift = df_shift.dropna().reset_index(drop=True)
-    return df_shift, target_col
+    return df_shift, target_col, n_missing_target
 
 
 def split_time_aware(df: pd.DataFrame, cfg: Config) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -262,7 +301,7 @@ def run_single_shift(
     numeric_cols: List[str],
     out_dir: Path,
 ) -> Dict[str, object]:
-    df_shift, target_col = prepare_shift_target(df_base, shift_day)
+    df_shift, target_col, n_missing_target = prepare_shift_target(df_base, shift_day)
     train_df, val_df, test_df = split_time_aware(df_shift, cfg)
     trainval_df = pd.concat([train_df, val_df], axis=0).reset_index(drop=True)
 
@@ -272,37 +311,49 @@ def run_single_shift(
     y_test = test_df[target_col].to_numpy()
 
     pipe = make_pipeline(categorical_cols, numeric_cols, cfg.random_state)
-    cv_splitter = ShuffleSplit(
-        n_splits=cfg.cv_folds,
-        test_size=cfg.cv_test_ratio,
-        random_state=cfg.random_state,
-    )
 
-    search_space = get_search_space()
-    if cfg.search_method == "grid":
-        search = GridSearchCV(
-            estimator=pipe,
-            param_grid=search_space,
-            cv=cv_splitter,
-            scoring="neg_root_mean_squared_error",
-            n_jobs=-1,
-            verbose=1,
-            refit=True,
-        )
+    if cfg.use_best_params:
+        pipe.set_params(**BEST_PARAMS)
+        pipe.fit(X_trainval, y_trainval)
+        estimator = pipe
+        best_params = BEST_PARAMS
+        cv_best_rmse = None
     else:
-        search = RandomizedSearchCV(
-            estimator=pipe,
-            param_distributions=search_space,
-            n_iter=cfg.random_search_iter,
-            cv=cv_splitter,
-            scoring="neg_root_mean_squared_error",
+        cv_splitter = ShuffleSplit(
+            n_splits=cfg.cv_folds,
+            test_size=cfg.cv_test_ratio,
             random_state=cfg.random_state,
-            n_jobs=-1,
-            verbose=1,
-            refit=True,
         )
-    search.fit(X_trainval, y_trainval)
-    y_pred_test = search.best_estimator_.predict(X_test)
+
+        search_space = get_search_space()
+        if cfg.search_method == "grid":
+            search = GridSearchCV(
+                estimator=pipe,
+                param_grid=search_space,
+                cv=cv_splitter,
+                scoring="neg_root_mean_squared_error",
+                n_jobs=-1,
+                verbose=1,
+                refit=True,
+            )
+        else:
+            search = RandomizedSearchCV(
+                estimator=pipe,
+                param_distributions=search_space,
+                n_iter=cfg.random_search_iter,
+                cv=cv_splitter,
+                scoring="neg_root_mean_squared_error",
+                random_state=cfg.random_state,
+                n_jobs=-1,
+                verbose=1,
+                refit=True,
+            )
+        search.fit(X_trainval, y_trainval)
+        estimator = search.best_estimator_
+        best_params = search.best_params_
+        cv_best_rmse = float(-search.best_score_)
+
+    y_pred_test = estimator.predict(X_test)
 
     shift_out_dir = out_dir / f"shift_{shift_day}"
     shift_out_dir.mkdir(parents=True, exist_ok=True)
@@ -311,15 +362,17 @@ def run_single_shift(
         "shift_day": shift_day,
         "target_column": target_col,
         "config": asdict(cfg),
-        "search_method": cfg.search_method,
+        "search_method": "best_params" if cfg.use_best_params else cfg.search_method,
         "n_rows_after_shift": int(len(df_shift)),
+        "n_records_excluded_by_target_shift": n_missing_target,
         "split_sizes": {
             "train": int(len(train_df)),
             "validation": int(len(val_df)),
             "test": int(len(test_df)),
         },
-        "best_params": search.best_params_,
-        "cv_best_rmse": float(-search.best_score_),
+        "best_params": best_params,
+        "cv_best_rmse": cv_best_rmse,
+        "bias_sign_convention": "bias = mean(prediction - observed); positive means overprediction",
         "test_metrics": metrics_report(y_test, y_pred_test),
     }
 
@@ -327,6 +380,8 @@ def run_single_shift(
 
     pred_df = test_df[[COL_DATE, "unit_id", target_col]].copy()
     pred_df["prediction"] = y_pred_test
+    pred_df["signed_error"] = pred_df["prediction"] - pred_df[target_col]
+    pred_df["absolute_error"] = pred_df["signed_error"].abs()
     pred_df.to_csv(shift_out_dir / "test_predictions.csv", index=False, encoding="utf-8-sig")
 
     return result
@@ -364,6 +419,11 @@ def main() -> None:
         default=Config.zscore_limit,
         help="Absolute z-score threshold for numeric outlier filtering; <=0 disables filter.",
     )
+    parser.add_argument(
+        "--use-best-params",
+        action="store_true",
+        help="Skip CV/search and train once with hardcoded best Random Forest parameters.",
+    )
     args = parser.parse_args()
 
     cfg = Config(
@@ -376,12 +436,13 @@ def main() -> None:
         cv_test_ratio=args.cv_test_ratio,
         random_search_iter=args.random_search_iter,
         zscore_limit=args.zscore_limit,
+        use_best_params=args.use_best_params,
     )
 
     out_dir = Path(cfg.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    df_base = load_and_clean_data(cfg)
+    df_base, cleaning_exclusion_summary, missing_summary = load_and_clean_data(cfg)
     shift_days = parse_shift_days(cfg.shift_days)
 
     categorical_cols = [COL_SEASON, COL_POND_TYPE, COL_FARM_TECH, COL_SEED]
@@ -402,7 +463,9 @@ def main() -> None:
         COL_SILICA,
     ]
     n_rows_before_zscore = len(df_base)
-    df_base = apply_zscore_filter(df_base, numeric_cols=numeric_cols, zscore_limit=cfg.zscore_limit)
+    df_base, n_zscore_excluded = apply_zscore_filter(
+        df_base, numeric_cols=numeric_cols, zscore_limit=cfg.zscore_limit
+    )
     n_rows_after_zscore = len(df_base)
 
     all_results = []
@@ -419,11 +482,60 @@ def main() -> None:
             )
         )
 
+    exclusion_rows = [
+        {
+            "stage": "operational_cleaning",
+            "reason": "missing_value",
+            "n_records": cleaning_exclusion_summary["operational_cleaning_missing_value"],
+        },
+        {
+            "stage": "zscore_filter",
+            "reason": f"abs_z_gte_{cfg.zscore_limit:g}",
+            "n_records": n_zscore_excluded,
+        },
+    ]
+    for result in all_results:
+        exclusion_rows.append(
+            {
+                "stage": f"target_shift_{result['shift_day']}",
+                "reason": "missing_future_target",
+                "n_records": result["n_records_excluded_by_target_shift"],
+            }
+        )
+        missing_summary = pd.concat(
+            [
+                missing_summary,
+                pd.DataFrame(
+                    [
+                        {
+                            "stage": f"target_shift_{result['shift_day']}",
+                            "column": result["target_column"],
+                            "n_missing": result["n_records_excluded_by_target_shift"],
+                            "pct_missing": float(
+                                result["n_records_excluded_by_target_shift"]
+                                / (result["n_rows_after_shift"] + result["n_records_excluded_by_target_shift"])
+                                * 100
+                            ),
+                        }
+                    ]
+                ),
+            ],
+            ignore_index=True,
+        )
+
+    exclusion_summary = pd.DataFrame(exclusion_rows)
+    exclusion_summary.to_csv(out_dir / "exclusion_summary.csv", index=False, encoding="utf-8-sig")
+    missing_summary.to_csv(out_dir / "missing_summary_by_column.csv", index=False, encoding="utf-8-sig")
+
     (out_dir / "all_runs_summary.json").write_text(
         json.dumps(
             {
                 "global_config": asdict(cfg),
+                "n_records_excluded_by_operational_cleaning": int(
+                    cleaning_exclusion_summary["operational_cleaning_missing_value"]
+                ),
                 "n_rows_before_zscore": int(n_rows_before_zscore),
+                "n_records_excluded_by_zscore": int(n_zscore_excluded),
                 "n_rows_after_zscore": int(n_rows_after_zscore),
                 "runs": all_results,
             },
@@ -433,7 +545,9 @@ def main() -> None:
     )
 
     print("Done. Outputs:")
-    print(f"- {out_dir / 'all_runs_summary.json'}")
+    # print(f"- {out_dir / 'all_runs_summary.json'}")
+    # print(f"- {out_dir / 'exclusion_summary.csv'}")
+    # print(f"- {out_dir / 'missing_summary_by_column.csv'}")
     for shift_day in shift_days:
         print(f"- {out_dir / f'shift_{shift_day}' / 'run_summary.json'}")
         print(f"- {out_dir / f'shift_{shift_day}' / 'test_predictions.csv'}")

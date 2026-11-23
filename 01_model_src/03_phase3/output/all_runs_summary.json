@@ -1,0 +1,65 @@
+{
+  "global_config": {
+    "data_path": "../../../WQi-Model/01_model_src/04_applypredict/kiemtra_1_enriched_clean_copy.csv",
+    "output_dir": "./output",
+    "random_state": 42,
+    "test_ratio": 0.2,
+    "val_ratio_within_trainval": 0.25,
+    "shift_days": "1",
+    "search_method": "grid",
+    "cv_folds": 5,
+    "cv_test_ratio": 0.3,
+    "random_search_iter": 60,
+    "zscore_limit": 0.0,
+    "use_best_params": true
+  },
+  "n_records_excluded_by_operational_cleaning": 0,
+  "n_rows_before_zscore": 1576,
+  "n_records_excluded_by_zscore": 0,
+  "n_rows_after_zscore": 1576,
+  "runs": [
+    {
+      "shift_day": 1,
+      "target_column": "target_alkalinity_shift_1",
+      "config": {
+        "data_path": "../../../WQi-Model/01_model_src/04_applypredict/kiemtra_1_enriched_clean_copy.csv",
+        "output_dir": "./output",
+        "random_state": 42,
+        "test_ratio": 0.2,
+        "val_ratio_within_trainval": 0.25,
+        "shift_days": "1",
+        "search_method": "grid",
+        "cv_folds": 5,
+        "cv_test_ratio": 0.3,
+        "random_search_iter": 60,
+        "zscore_limit": 0.0,
+        "use_best_params": true
+      },
+      "search_method": "best_params",
+      "n_rows_after_shift": 1564,
+      "n_records_excluded_by_target_shift": 12,
+      "split_sizes": {
+        "train": 939,
+        "validation": 313,
+        "test": 312
+      },
+      "best_params": {
+        "model__n_estimators": 500,
+        "model__min_samples_split": 5,
+        "model__min_samples_leaf": 2,
+        "model__max_features": "log2",
+        "model__max_depth": 30,
+        "model__bootstrap": true
+      },
+      "cv_best_rmse": null,
+      "bias_sign_convention": "bias = mean(prediction - observed); positive means overprediction",
+      "test_metrics": {
+        "rmse": 30.567115171446705,
+        "mae": 24.664997150230114,
+        "mape": 16.22852361776479,
+        "r2": -1.0472322692114386,
+        "bias": -23.34546926875839
+      }
+    }
+  ]
+}

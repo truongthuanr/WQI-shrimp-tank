@@ -187,11 +187,49 @@ Thank you for this suggestion. In this revision, we prioritized transparency and
 
 1. Although data-flow traceability has improved, one final clarification is still needed regarding the transition from the initial 4,716 records to the 3,461 records retained after operational cleaning. The manuscript states that data cleaning was performed, but it does not specify how many records were excluded because of sensor failure, duplicated entries, incomplete values, temporal misalignment, implausible records or other causes. This information matters because differential exclusion of extreme values could affect model-performance interpretation, especially since the manuscript itself recognizes lower accuracy at low and high alkalinity ranges. No new analysis is required; a brief table or methodological sentence classifying the exclusion reasons and the number of affected records would be sufficient.
 
+Drop NA: 1129
+Units outside the top 18 unit groups: 9
+sparse observations: 1
+
+Missing value trên các cột
+Độ cứng: 904
+Phosphate (PO43-): 868
+Silica: 860
+Nitrat: 849
+Amoni: 849
+Nitrit: 847
+Độ kiềm: 843
+Độ trong: 529
+Độ màu: 463
+Mực nước: 29
+Tuổi tôm: 24
+Thay nước (cm): 21
+
 2. Computational reproducibility has improved appreciably through the inclusion of software versions, random seed, GridSearchCV and hyperparameter search spaces. However, the temporal validation scheme still needs a more precise definition. The Methods section refers to chronological validation and a supplementary time-blocked validation analysis, but it remains unclear how many blocks were used, how long each block was, whether validation followed an expanding-window or rolling-window design, and whether any temporal gap was applied to avoid leakage. Because the data are time-dependent, this clarification is necessary to interpret whether model performance reflects true forecasting ability rather than short-term interpolation favored by temporal autocorrelation. A concise methodological statement would resolve this point.
+
+Dữ liệu sau clean chỉ còn khoảng 3,461 records, sau z-score còn 3,163.
+
+Khi tạo target forecast theo từng unit_id, mỗi unit mất thêm các dòng cuối.
+
+Nếu chia tiếp theo time blocks, một số block/unit có rất ít samples.
+
+Vì data có cấu trúc theo unit_id, chia time-block quá nhỏ có thể làm validation fold không đại diện đầy đủ cho các ao/vụ.
+
+Do đó primary protocol dùng chronological holdout + CV trong train/validation.
+
 
 3. The interpretation of RFR performance has been substantially corrected, but some expressions still appear to attribute its superiority directly to its ensemble architecture and ability to reduce overfitting. This explanation is plausible, but the manuscript does not provide specific overfitting diagnostics, such as training-versus-validation comparisons, learning curves or model-specific residual analyses. Therefore, the interpretation should be phrased conditionally: the observed performance "may be consistent with" RFR's capacity to handle nonlinear relationships and noisy environmental data, rather than being presented as a demonstrated causal explanation.
 
 4. Table 7 clearly strengthens the external validation by reporting n, alkalinity range, mean ± standard deviation, R², RMSE and MAE by site. However, a bias indicator is still missing. RMSE and MAE quantify error magnitude but not its direction. In aquaculture management applications, it is relevant to know whether the model systematically overpredicts or underpredicts alkalinity at an external site. I recommend adding mean error or mean bias error by site, with the sign convention explicitly defined.
+
+MPLA: "bias": 2.8604940185740344
+Lộc An: "bias": 4.244769226269068
+Ninh Thuận: "bias": 10.624405996084265
+
+ME/Bias
+ANN: -2.735
+RFR: 0.405
+SVR: -0.168
 
 5. The discussion of errors at alkalinity extremes is relevant, but it would be strengthened by a minimal range-stratified error summary. The manuscript states that accuracy decreases below 120 mg CaCO₃/L and above 180 mg CaCO₃/L, but it does not show how many external records fall within these ranges or how errors are distributed there. A brief table reporting n, MAE and bias for <120, 120-180 and >180 mg CaCO₃/L, at least for the aggregated external validation dataset, would help distinguish whether the limitation is general to the model or driven by site-specific distributions.
 

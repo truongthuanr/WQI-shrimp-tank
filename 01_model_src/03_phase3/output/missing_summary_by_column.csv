@@ -1,0 +1,18 @@
+﻿stage,column,n_missing,pct_missing
+operational_cleaning,Date,0,0.0
+operational_cleaning,unit_id,0,0.0
+operational_cleaning,Season,0,0.0
+operational_cleaning,Loại ao,0,0.0
+operational_cleaning,Công nghệ nuôi,0,0.0
+operational_cleaning,Giống tôm,0,0.0
+operational_cleaning,Tuổi tôm,0,0.0
+operational_cleaning,Mực nước,0,0.0
+operational_cleaning,Nhiệt độ,0,0.0
+operational_cleaning,pH,0,0.0
+operational_cleaning,Độ mặn,0,0.0
+operational_cleaning,TDS,0,0.0
+operational_cleaning,Độ màu,0,0.0
+operational_cleaning,Độ trong,0,0.0
+operational_cleaning,Độ cứng,0,0.0
+operational_cleaning,Độ kiềm,0,0.0
+target_shift_1,target_alkalinity_shift_1,12,0.7614213197969544
