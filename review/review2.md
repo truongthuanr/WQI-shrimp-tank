@@ -22,10 +22,10 @@
 | Giữ lại 6 thông số | GBT | 0.71 | 13.43 | 13.33 |
 | Giữ lại 6 thông số | ANN | 0.63 | 15.16 | 12.51 |
 | Giữ lại 6 thông số | SVR | 0.48 | 17.63 | 13.23 |
-| Giữ lại 5 thông số | RF | 0.72 | 13.26 |
-| Giữ lại 5 thông số | GBT | 0.71 | 13.50 |
-| Giữ lại 5 thông số | ANN | 0.61 | 15.56 |
-| Giữ lại 5 thông số | SVR | 0.48 | 17.57 |
+| Giữ lại 5 thông số | RF | 0.72 | 13.26 | 10.39 |
+| Giữ lại 5 thông số | GBT | 0.71 | 13.50 | 12.84 |
+| Giữ lại 5 thông số | ANN | 0.61 | 15.56 | 12.79 |
+| Giữ lại 5 thông số | SVR | 0.48 | 17.57 | 13.76 |
 | Giữ lại 10 thông số đóng góp và loại bớt các thông số khó đo | RF | 0.71 | 13.53 |
 | Giữ lại 10 thông số đóng góp và loại bớt các thông số khó đo | GBT | 0.71 | 13.35 |
 | Giữ lại 10 thông số đóng góp và loại bớt các thông số khó đo | ANN | 0.55 | 16.69 |
@@ -35,7 +35,7 @@
 | Chỉ giữ lại các thông số dễ đo (Tuổi tôm, nhiệt độ, pH, độ mặn, mực nước, độ trong, công nghệ nuôi, loại ao nuôi, mùa vụ và diện tích ao) | ANN | 0.69 | 11.25 | 10.44 |
 | Chỉ giữ lại các thông số dễ đo (Tuổi tôm, nhiệt độ, pH, độ mặn, mực nước, độ trong, công nghệ nuôi, loại ao nuôi, mùa vụ và diện tích ao) | SVR | 0.62 | 15.48 | 11.09 |
 
-Ghi chú: MAE của nhóm 8/9 biến được tính theo các bộ biến trong `variable-selection.md`, với SVR dùng bộ biến RF-8/9 tương ứng; dự đoán Độ kiềm cùng thời điểm (`shift=0`), chia ngẫu nhiên seed 42 và dùng chung 598 mẫu test. Nhóm 7 biến dùng Loại ao, Công nghệ nuôi, Độ cứng, Độ mặn, TDS, pH và Tuổi tôm; cùng thiết lập `shift=0`, seed 42 và 691 mẫu test. Nhóm 6 biến dùng Nhiệt độ, Độ cứng, pH, Công nghệ nuôi, Loại ao và Tuổi tôm; cùng thiết lập `shift=0`, seed 42 và 691 mẫu test. MAE ở bốn hàng thông số dễ đo được lấy từ lần chạy cùng bộ 10 biến ở trên (`shift=0`, 601 mẫu test). R² và RMSE được giữ nguyên theo bảng hiện có, không phải kết quả của các lần chạy MAE này.
+Ghi chú: MAE của nhóm 8/9 biến được tính theo các bộ biến trong `variable-selection.md`, với SVR dùng bộ biến RF-8/9 tương ứng; dự đoán Độ kiềm cùng thời điểm (`shift=0`), chia ngẫu nhiên seed 42 và dùng chung 598 mẫu test. Nhóm 7 biến dùng Loại ao, Công nghệ nuôi, Độ cứng, Độ mặn, TDS, pH và Tuổi tôm; cùng thiết lập `shift=0`, seed 42 và 691 mẫu test. Nhóm 6 biến dùng Nhiệt độ, Độ cứng, pH, Công nghệ nuôi, Loại ao và Tuổi tôm; cùng thiết lập `shift=0`, seed 42 và 691 mẫu test. Nhóm 5 biến dùng Độ cứng, Loại ao, pH, TDS và Tuổi tôm; cùng thiết lập `shift=0`, seed 42 và 691 mẫu test. MAE ở bốn hàng thông số dễ đo được lấy từ lần chạy cùng bộ 10 biến ở trên (`shift=0`, 601 mẫu test). R² và RMSE được giữ nguyên theo bảng hiện có, không phải kết quả của các lần chạy MAE này.
 
 ### Bảng 3.12 Kết quả dự báo kiềm của các kịch bản khác nhau với mô hình cải tiến
 

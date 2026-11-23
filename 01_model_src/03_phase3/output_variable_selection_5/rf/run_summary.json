@@ -1,0 +1,42 @@
+{
+  "model": "RF",
+  "features": [
+    "Độ cứng",
+    "Loại ao",
+    "pH",
+    "TDS",
+    "Tuổi tôm"
+  ],
+  "target": "Độ kiềm",
+  "shift": 0,
+  "split": "random 60/20/20",
+  "seed": 42,
+  "zscore_limit": 3.0,
+  "rows": {
+    "raw": 3461,
+    "after_dropna": 3461,
+    "after_zscore": 3455,
+    "excluded_outliers": 6,
+    "train": 2073,
+    "validation": 691,
+    "trainval": 2764,
+    "test": 691
+  },
+  "fit": {
+    "params": {
+      "model__n_estimators": 500,
+      "model__min_samples_split": 5,
+      "model__min_samples_leaf": 2,
+      "model__max_features": "log2",
+      "model__max_depth": 30,
+      "model__bootstrap": true
+    }
+  },
+  "test_metrics": {
+    "rmse": 14.495345576063885,
+    "mae": 10.392007642449423,
+    "mape": 6.849801869677755,
+    "r2": 0.7416785827964701,
+    "bias": 0.10886871071453502
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "model": "ANN",
+  "features": [
+    "Độ cứng",
+    "Loại ao",
+    "pH",
+    "TDS",
+    "Tuổi tôm"
+  ],
+  "target": "Độ kiềm",
+  "shift": 0,
+  "split": "random 60/20/20",
+  "seed": 42,
+  "zscore_limit": 3.0,
+  "rows": {
+    "raw": 3461,
+    "after_dropna": 3461,
+    "after_zscore": 3455,
+    "excluded_outliers": 6,
+    "train": 2073,
+    "validation": 691,
+    "trainval": 2764,
+    "test": 691
+  },
+  "fit": {
+    "architecture": [
+      72,
+      60,
+      32,
+      8
+    ],
+    "dropout": 0.1,
+    "optimizer": "nadam",
+    "loss": "mae",
+    "epochs": 200,
+    "batch_size": 32,
+    "last_validation_loss_scaled": 0.44821521639823914
+  },
+  "test_metrics": {
+    "rmse": 17.663196228133813,
+    "mae": 12.791177664065327,
+    "mape": 8.488831580820726,
+    "r2": 0.6164324532150345,
+    "bias": -0.5738020150257779
+  }
+}
