@@ -14,10 +14,10 @@
 | Giữ lại 8 thông số | GBT | 0.72 | 13.27 | 11.06 |
 | Giữ lại 8 thông số | ANN | 0.64 | 15.07 | 10.02 |
 | Giữ lại 8 thông số | SVR | 0.58 | 15.79 | 10.22 |
-| Giữ lại 7 thông số | RF | 0.71 | 13.38 |
-| Giữ lại 7 thông số | GBT | 0.71 | 13.54 |
-| Giữ lại 7 thông số | ANN | 0.63 | 15.16 |
-| Giữ lại 7 thông số | SVR | 0.58 | 15.78 |
+| Giữ lại 7 thông số | RF | 0.71 | 13.38 | 10.21 |
+| Giữ lại 7 thông số | GBT | 0.71 | 13.54 | 12.46 |
+| Giữ lại 7 thông số | ANN | 0.63 | 15.16 | 11.77 |
+| Giữ lại 7 thông số | SVR | 0.58 | 15.78 | 12.77 |
 | Giữ lại 6 thông số | RF | 0.71 | 13.47 |
 | Giữ lại 6 thông số | GBT | 0.71 | 13.43 |
 | Giữ lại 6 thông số | ANN | 0.63 | 15.16 |
@@ -35,7 +35,7 @@
 | Chỉ giữ lại các thông số dễ đo (Tuổi tôm, nhiệt độ, pH, độ mặn, mực nước, độ trong, công nghệ nuôi, loại ao nuôi, mùa vụ và diện tích ao) | ANN | 0.69 | 11.25 | 10.44 |
 | Chỉ giữ lại các thông số dễ đo (Tuổi tôm, nhiệt độ, pH, độ mặn, mực nước, độ trong, công nghệ nuôi, loại ao nuôi, mùa vụ và diện tích ao) | SVR | 0.62 | 15.48 | 11.09 |
 
-Ghi chú: MAE của nhóm 8/9 biến được tính theo các bộ biến trong `variable-selection.md`, với SVR dùng bộ biến RF-8/9 tương ứng; dự đoán Độ kiềm cùng thời điểm (`shift=0`), chia ngẫu nhiên seed 42 và dùng chung 598 mẫu test. MAE ở bốn hàng thông số dễ đo được lấy từ lần chạy cùng bộ 10 biến ở trên (`shift=0`, 601 mẫu test). R² và RMSE được giữ nguyên theo bảng hiện có, không phải kết quả của các lần chạy MAE này.
+Ghi chú: MAE của nhóm 8/9 biến được tính theo các bộ biến trong `variable-selection.md`, với SVR dùng bộ biến RF-8/9 tương ứng; dự đoán Độ kiềm cùng thời điểm (`shift=0`), chia ngẫu nhiên seed 42 và dùng chung 598 mẫu test. Nhóm 7 biến dùng Loại ao, Công nghệ nuôi, Độ cứng, Độ mặn, TDS, pH và Tuổi tôm; cùng thiết lập `shift=0`, seed 42 và 691 mẫu test. MAE ở bốn hàng thông số dễ đo được lấy từ lần chạy cùng bộ 10 biến ở trên (`shift=0`, 601 mẫu test). R² và RMSE được giữ nguyên theo bảng hiện có, không phải kết quả của các lần chạy MAE này.
 
 ### Bảng 3.12 Kết quả dự báo kiềm của các kịch bản khác nhau với mô hình cải tiến
 
